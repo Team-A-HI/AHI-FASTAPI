@@ -1,51 +1,81 @@
 from docx import Document
-import subprocess
 import os
-
-from docx import Document
-from .utils import call_openai_gpt
 import subprocess
 
-def generate_resume_content(data):
-    # 이력서 데이터를 메시지 형식으로 변환
-    messages = [
-        {"role": "system", "content": "당신은 이력서 작성을 도와주는 AI 비서입니다."},
-        {"role": "user", "content": f"이름: {data.name}, 휴대폰 번호: {data.phone_number}, 이메일: {data.email}, 직무: {data.job_title}, 기술 스택: {', '.join(data.skills)}, 경력 사항: {', '.join(data.experiences)}, 프로젝트 내용: {', '.join(data.projects)}, 학력: {', '.join(data.educations)}, 수상 내역 및 자격증: {', '.join(data.awards_and_certifications)}"}
-    ]
+# LibreOffice 실행 파일 경로 설정
+libreoffice_path = 'C:\\Program Files\\LibreOffice\\program\\soffice.exe'
 
+# 이력서 템플릿 파일 경로
+template_path = 'tem11.docx'
+
+# 텍스트 치환 함수
+def replace_text_in_paragraph(paragraph, context):
+    for run in paragraph.runs:
+        for key, value in context.items():
+            if key in run.text:
+                run.text = run.text.replace(key, '' if value is None else value)
+
+# 이력서 템플릿을 채우고 저장하는 함수
+def generate_resume(template_path, output_path, resume_data):
     try:
-        response = call_openai_gpt(messages)
-        chat_response = response['choices'][0]['message']['content']
-        return chat_response
+        doc = Document(template_path)
+
+        context = {
+            '{Name}': resume_data.get("name"),
+            '{Phone}': resume_data.get("phone_number"),
+            '{Email}': ', '.join(resume_data.get("email")),
+            '{Git}': resume_data.get("git"),
+            '{JobTitle}': resume_data.get("job_title"),
+            '{Skills}': ', '.join(resume_data.get("skills", [])),
+            '{Experiences}': ', '.join(resume_data.get("experiences", [])),
+            '{ExperiencesDetail}': ', '.join(resume_data.get("experiences_detail", [])),
+            '{Projects}': ', '.join(resume_data.get("projects", [])),
+            '{ProjectsDetail}': ', '.join(resume_data.get("projects_detail", [])),  
+            '{Education}': ', '.join(resume_data.get("educations", [])),
+            '{EducationDetail}': ', '.join(resume_data.get("educations_detail", [])),
+            '{AwardsAndCertifications}': ', '.join(resume_data.get("awards_and_certifications", [])),
+        }
+
+        for paragraph in doc.paragraphs:
+            replace_text_in_paragraph(paragraph, context)
+
+        for table in doc.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    for paragraph in cell.paragraphs:
+                        replace_text_in_paragraph(paragraph, context)
+
+        doc.save(output_path)
+        print("Document created successfully. File path:", output_path)
     except Exception as e:
         print(f"Error: {e}")
-        return None
 
-def fill_template(template_path, output_path, context):
-    doc = Document(template_path)
-
-    for paragraph in doc.paragraphs:
-        for key, value in context.items():
-            if key in paragraph.text:
-                paragraph.text = paragraph.text.replace(key, value)
-
-    for table in doc.tables:
-        for row in table.rows:
-            for cell in row.cells:
-                for key, value in context.items():
-                    if key in cell.text:
-                        cell.text = cell.text.replace(key, value)
-    
-    # 최종 문서를 저장
-    doc.save(output_path)
-    
-def convert_docx_to_pdf(docx_file_path, pdf_file_path):
-    # LibreOffice 실행 파일 경로
-    libreoffice_path = '/path/to/soffice'  # 실제 경로로 변경 필요
-
-    # subprocess를 사용하여 DOCX 파일을 PDF로 변환
+# Docx 파일을 PDF로 변환하는 함수
+def convert_to_pdf(docx_path, pdf_path, libreoffice_path):
     try:
-        subprocess.run([libreoffice_path, '--headless', '--convert-to', 'pdf:writer_pdf_Export', docx_file_path, '--outdir', pdf_file_path.rsplit('/', 1)[0]])
-        print(f"{docx_file_path} 파일을 PDF로 변환하여 {pdf_file_path}에 저장했습니다.")
+        subprocess.run([libreoffice_path, '--headless', '--convert-to', 'pdf', docx_path, '--outdir', os.path.dirname(pdf_path)])
+        print(f"PDF conversion successful. File path: {pdf_path}")
     except Exception as e:
-        print(f"변환 중 오류 발생: {e}")  
+        print(f"Error during PDF conversion: {e}")
+
+# 이 함수는 chat_response를 받아서 이력서 내용을 생성하고 파일로 저장하는 역할을 합니다.
+# 필요한 작업을 수행하도록 구현하십시오.
+# 예시로 파일에 저장하고 파일 경로를 반환하도록 작성합니다.
+def generate_resume_content(chat_response):
+    generated_resume_path = 'path_to_generated_resume.docx'  # 예시 경로
+
+    # chat_response를 이력서 내용으로 사용하고 파일로 저장
+    with open(generated_resume_path, 'w', encoding='utf-8') as file:
+        file.write(chat_response)
+
+    return generated_resume_path
+
+# 함수 호출
+resume_data = {...}  # 이력서 데이터
+output_path_docx = f'{resume_data["name"]}_resume.docx'
+output_path_pdf = f'{resume_data["name"]}_resume.pdf'
+
+generate_resume(template_path, output_path_docx, resume_data)
+
+# DOCX 파일을 PDF로 변환
+convert_to_pdf(output_path_docx, output_path_pdf, libreoffice_path)

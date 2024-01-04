@@ -2,6 +2,8 @@ from pydantic import BaseModel, Field
 import uuid # for _id universal unique indentify
 from typing import Optional
 
+
+
 class UserSchema(BaseModel):
     id: str = Field(default_factory=uuid.uuid4, alias="_id")
     name: str = Field(...)

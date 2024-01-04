@@ -19,11 +19,26 @@ class Ask(BaseModel):
     keyword : List[str]
     content : List[str]
     title : str
+class Ask(BaseModel):
+    introductionTitle : List[str]
+    keyword : List[str]
+    content : List[str]
+    title : str
 
 class SelfIntroduction(BaseModel):
     title: str
     content: str
+    
+class SelfIntroduction(BaseModel):
+    title: str
+    content: str
 
+class PersonalInformation(BaseModel):
+    name: str
+    position: str
+    dateOfBirth: str
+    gender: str
+    department: str
 class PersonalInformation(BaseModel):
     name: str
     position: str
