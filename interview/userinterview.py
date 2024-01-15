@@ -53,7 +53,7 @@ def gpt_feedback(question, userAnswer):
             5. 답변은 반드시 한국어로 할 것
             6. 답변은 명확하고 구체적으로 하며 gpt의 능력을 최대한 활용할 것
             7. 관련이 없는 정보가 들어온다면 잘못된 답변이라고 말할 것
-            8. "{question}에 대한 답변{userAnswer}을 듣고 피드백을 해줄 것"
+            8. "{question}에 대한 답변{userAnswer}을 듣고 더 나은 답변을 사용자에게 피드백 할 것"
             9. 심호흡을 하고 천천히 잘 생각한 뒤 대답해줘 잘 수행한다면 선물을 줄게
     """
     response = openai.ChatCompletion.create(

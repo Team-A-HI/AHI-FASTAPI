@@ -16,7 +16,7 @@ from sqlalchemy.exc import IntegrityError
 
 model = SentenceTransformer('snunlp/KR-SBERT-V40K-klueNLI-augSTS')
 
-client = chromadb.HttpClient(host="52.79.181.213", port=8005)
+client = chromadb.HttpClient(host="15.164.164.18", port=8005)
 # client = chromadb.PersistentClient(path="C:\dev\jgsProject\chromaDB")
 
 
@@ -48,7 +48,6 @@ def encode_field(value):
         raise ValueError(f"Error encoding field: {value}, {e}")
 
 
-openai.api_key = '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'
 
 POrouter = APIRouter(prefix="/posting")
 
