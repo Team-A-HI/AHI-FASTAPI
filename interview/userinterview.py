@@ -1,12 +1,11 @@
 from configset.config import getAPIkey,getModel
 import openai
-from fastapi import APIRouter, UploadFile, File, Body, FastAPI, HTTPException
+from fastapi import APIRouter, UploadFile, File
 import pdfplumber
 from io import BytesIO
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from typing import List, Dict, Optional, ClassVar
-import json
+
 
 OPENAI_API_KEY = getAPIkey()
 openai.api_key = OPENAI_API_KEY
@@ -16,6 +15,20 @@ userInterViewrouter = APIRouter(prefix="/userinterview")
 
 
 def gpt_question(userdata):
+    en_prompt = f"""
+    1.Never mention "AI."
+    2.Do not use language that expresses apology or regret.
+    3.Avoid repeating the same response.
+    4.Act as a veteran interviewer for an IT development company with exceptional talent recruitment skills.
+    5.Responses must be in Korean.
+    6.Responses should be clear and specific, utilizing the full capabilities of GPT.
+    7.If irrelevant information is included, state that the response is incorrect.
+    8.Ask a question related to computer science.
+    9.Ask two questions about {userdata}.
+    10.Only ask questions.
+    11.Take a deep breath, think carefully, and then respond. If you do well, I'll give you a gift.
+    """
+    
     prompt = f"""
             1. ai라고 절대 언급하지 말것.
             2. 사과, 후회등의 언어 구성을 하지말것
