@@ -117,14 +117,10 @@ async def readResume(file : UploadFile = File(...)):
     pre_prompt1 = "1.Keep the original content without summarizing it;"
     pre_prompt2 = "2.Separate the content into key and value, distinguishing between title and content.;"
     pre_prompt3 = "3.Separate the PersonalInformation and SelfIntroduction sections within the content."
-    # pre_prompt4 = "ex) ReaderDTO : {{PersonalInformation : name:name , position : position, dateOfBirth : dateOfBirth , gender : gender , department : department ....}, {SelfIntroduction : title : title , content : content ...}};"
     pre_prompt4 = "ex) ReaderDTO : {{PersonalInformation : name:name , email : email, github : github , phone : phone , education : education},{AwardsCertifications : [AwardsCertification]},{Skills : [Skillname]...},{Experience : company : company , duration : duration},{Projects : ProjectsTitle : ProjectsTitle , ProjectsContent : ProjectsContent...} ,{SelfIntroduction : title : title , content : content ...}};"
-    # pre_prompt5 = "4.Provide in JSON format"
     pre_prompt5 = "4.You are a helpful assistant designed to output JSON."
     pre_prompt6 = "5.Translate only 'key' into English."
-    # pre_prompt7 = "6.Json 형태 외 다른 문자는 필요없어"
     system_content = pre_prompt1 + pre_prompt2 + pre_prompt3 + pre_prompt4 + pre_prompt5 + pre_prompt6
-    # system_content = pre_prompt1 + pre_prompt2 + pre_prompt3 + pre_prompt4 + pre_prompt5 + pre_prompt6 + pre_prompt7
     try :
         answer = post_gap(system_content , text)
         strToJson = answer
@@ -182,7 +178,7 @@ async def modify(modifyResume : RequestEntity):
     system_content = """너는AI 모델이 아닌 IT업계 인사 담당자 출신의 사람이야 회사의 취업 지원한 지원자의 이력서를 보고 객관적으로 판단해야돼
                     판단의 기준은 지원자의 기술 스택 과 지원하는 공고의 지원 자격을 보고 자기소개서를 판단 해줘야돼
                     판단을 다하고 나면 해당 자기소개서의 내용을 수정하고 자기소개서에서 보충해야되는 방향을 출력해주는데
-                    출력하는 형식은 {gptAnswer : 답변,SelfIntroduction : selfIntroduction[{title : title , content : cotnet},{title : title , content : cotnet},{...} ]}
+                    출력하는 형식은 {gptAnswer : gptAnswer(수정팁) , SelfIntroduction : selfIntroduction[{title : title , content : cotnet},{title : title , content : cotnet},{...} ]}
                     형태로 출력해주면돼 자기소개서 내용 요약말고 글 정리만 하는데 더 상세하게 수정해줘.
                     그리고 너의 답변은 무조건 json 형태로 지켜야돼 json 형태 외 다른 데이터는 필요없어
                     """

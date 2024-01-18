@@ -16,7 +16,7 @@ from sqlalchemy.exc import IntegrityError
 
 model = SentenceTransformer('snunlp/KR-SBERT-V40K-klueNLI-augSTS')
 
-client = chromadb.HttpClient(host="15.164.164.18", port=8005)
+client = chromadb.HttpClient(host="15.164.164.18", port=8005) # 크로마 디비 주소 나중에 로컬로 돌려야됌
 # client = chromadb.PersistentClient(path="C:\dev\jgsProject\chromaDB")
 
 
