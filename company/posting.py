@@ -1,4 +1,4 @@
-from fastapi import APIRouter , Request , Form , HTTPException
+from fastapi import APIRouter, Request, Form, HTTPException
 from pydantic import BaseModel
 from typing import List
 import chromadb
@@ -11,20 +11,20 @@ import requests
 from datetime import datetime
 from transformers import BertTokenizer
 import json
-
+from sqlalchemy.exc import IntegrityError
 
 
 model = SentenceTransformer('snunlp/KR-SBERT-V40K-klueNLI-augSTS')
 
-client = chromadb.Client()
+client = chromadb.HttpClient(host="15.164.164.18", port=8005)
+# client = chromadb.PersistentClient(path="C:\dev\jgsProject\chromaDB")
 
-
-from datetime import datetime
 
 def datetime_serializer(obj):
     if isinstance(obj, datetime):
         return obj.strftime('%Y-%m-%d %H:%M:%S')
     raise TypeError("Type not serializable")
+
 
 def encode_field(value):
     try:
@@ -48,27 +48,28 @@ def encode_field(value):
         raise ValueError(f"Error encoding field: {value}, {e}")
 
 
-
-client = chromadb.PersistentClient()
-
 openai.api_key = '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'
 
 POrouter = APIRouter(prefix="/posting")
+
 
 class WorkTypeDTO(BaseModel):
     workCode: int
     workConditions: str
     postingCode: int
 
+
 class SkillDTO(BaseModel):
     skillCode: int
     skillName: str
     postingCode: int
 
+
 class PostingExperienceDTO(BaseModel):
     experienceCode: int
     experienceLevel: str
     postingCode: int
+
 
 class CompanyDTO(BaseModel):
     companyId: int
@@ -81,6 +82,7 @@ class CompanyDTO(BaseModel):
     establishmentDate: datetime
     companyHomepage: Optional[str]
 
+
 class PostingDTO(BaseModel):
     postingCode: int
     postingDate: str
@@ -91,7 +93,7 @@ class PostingDTO(BaseModel):
     position: str
     closingForm: str
     content: str
-    postingTitle: str 
+    postingTitle: str
     selectedCareer: Optional[str]
     selectedConditions: Optional[str]
     selectedSkills: Optional[str]
@@ -107,70 +109,69 @@ async def registCompany(posting: PostingDTO):
 
     company = posting.company
 
-    postingData = [posting.postingTitle , posting.postingDate , posting.endDate, posting.education,
-                    company.email , company.company, company.companyType, str(company.employeesNumber),
-                    company.establishmentDate]
-    
-
+    postingData = [posting.content, posting.postingTitle, posting.postingDate, posting.endDate, posting.education,
+                   company.email, company.company, company.companyType, str(
+                       company.employeesNumber),
+                   company.establishmentDate]
 
     for work_type in posting.workTypeList:
-        
+
         postingData.append(work_type.workConditions)
 
-
     for skill in posting.skillList:
-        
+
         postingData.append(skill.skillName)
 
-    
     for exp in posting.postingExperienceList:
-        
-        postingData.append(exp.experienceLevel)
 
+        postingData.append(exp.experienceLevel)
 
     merged_string = " ".join(map(str, postingData))
 
+    print(merged_string)
+
     embeddings = model.encode(merged_string)
 
-    
     # ChromaDB에 데이터 저장
     collection_name = "posting"
 
-    collection = client.get_collection(name=collection_name)
+    try:
+        # 컬렉션이 이미 존재하면 가져오기
+        collection = client.create_collection(name=collection_name)
+    except:
+        collection = client.get_collection(name=collection_name)
 
-    
-    
     data = {
         "embeddings": [embeddings.tolist()],
         "documents": [merged_string],
         "ids": [str(postingCode)],
     }
-    
-    
+
     collection.add(**data)
 
     print("됐냐?")
 
-    return "gd"
+    return JSONResponse(content={"message": "success"}, status_code=200)
+
 
 @POrouter.get("/get")
 async def get_posting():
 
-    
     try:
         # ChromaDB에서 조회
         collection_name = "posting"
         collection = client.get_collection(name=collection_name)
 
-        query_text = "fuck"
+        query_text = "백앤드"
         query_embedding = model.encode(query_text)
 
         result = collection.query(
             # query_texts=[model.encode("spring")],
             query_embeddings=[query_embedding.tolist()],
-            n_results=5
+            n_results=2
         )
 
+        print(result)
 
         if result:
             # 결과 반환
@@ -181,6 +182,23 @@ async def get_posting():
     except Exception as e:
         print(f"Error in get_posting: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
+
+
+@POrouter.delete("/delete/{postingCode}")
+async def get_delete(postingCode: int):
+
+    print(postingCode)
+
+    collection_name = "posting"
+
+    collection = client.get_collection(name=collection_name)
+
+    collection.delete(
+        ids=[str(postingCode)]
+    )
+
+    print("삭제 성공")
+
 
 
 

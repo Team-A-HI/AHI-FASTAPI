@@ -1,6 +1,0 @@
-OpenAI 모듈에러 시
-pip install —upgrade openai
-
-12-27
-pip install SQLAlchemy
-pip install mysql
